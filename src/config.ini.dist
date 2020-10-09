@@ -1,0 +1,9 @@
+[jwt]
+key = 
+
+[storage]
+data = /var/filemgr/data
+cache = /var/filemgr/cache
+
+[database]
+connect_string = 

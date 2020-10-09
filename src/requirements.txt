@@ -1,0 +1,6 @@
+falcon
+PyJWT
+PIL
+pypdf2
+pyvips
+cx_Oracle
