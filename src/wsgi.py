@@ -17,13 +17,13 @@ from ThumbnailResource import ThumbnailResource
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-api = falcon.API(middleware=[
+application = api = falcon.API(middleware=[
     AuthMiddleware(config['jwt']['key']),
     MultipartMiddleware(),
     CORSMiddleware()
 ])
 
-databaseService = DatabaseService(config['database']['connect_string'])
+# databaseService = DatabaseService(config['database']['connect_string'])
 
 versionResource = VersionResource()
 

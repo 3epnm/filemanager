@@ -1,6 +1,9 @@
 falcon
+falcon-multipart
 PyJWT
-PIL
+Pillow
 pypdf2
 pyvips
 cx_Oracle
+gunicorn
+uWSGI
