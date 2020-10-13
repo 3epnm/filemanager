@@ -23,11 +23,11 @@ application = api = falcon.API(middleware=[
     CORSMiddleware()
 ])
 
-# databaseService = DatabaseService(config['database']['connect_string'])
+databaseService = DatabaseService(config['database']['connect_string'])
 
 versionResource = VersionResource()
 
-fileStore = FileStore(config['storage']['data'])
+fileStore = FileStore(config['storage']['data'], databaseService)
 fileResource = FileResource(fileStore)
 
 cacheStore = CacheStore(config['storage']['cache'])
@@ -39,3 +39,4 @@ api.add_route('/api/file', fileResource)
 api.add_route('/api/file/{name}', fileResource)
 api.add_route('/api/thumbnail/{name}', thumbnailResource)
 api.add_route('/api/cache/{name}', cacheResource)
+

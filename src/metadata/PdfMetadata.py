@@ -20,8 +20,7 @@ class PdfMetadata(object):
                 'subject': info.subject,
                 'title': info.title
             }
-        except PyPDF2.utils.PdfReadError:
-            print('no pdf')
-        else:
-            pass
+        except Exception as inst:
+            print(type(inst))
+            print(inst.args)
 

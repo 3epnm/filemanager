@@ -16,8 +16,9 @@ class FileStore(object):
         '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[a-z]{2,4}$'
     )
 
-    def __init__(self, storage_path, uuidgen=uuid.uuid4):
+    def __init__(self, storage_path, database, uuidgen=uuid.uuid4):
         self._storage_path = storage_path
+        self._db = database
         self._uuidgen = uuidgen
 
     def file_path(self, name):
@@ -55,11 +56,11 @@ class FileStore(object):
         path = self.file_path(name)
 
         with fopen(path, 'w') as outfile:
-            json.dump(data, outfile, indent=2)
+            json.dump(data, outfile, indent=2, ensure_ascii=True)
 
         return path
 
-    def save(self, file):
+    def save(self, file, userid):
         ext = mimetypes.guess_extension(file.type)
         uuid = self._uuidgen()
 
@@ -90,5 +91,7 @@ class FileStore(object):
         PdfMetadata(file_path, data)
 
         self.save_json(uuid, data)
+
+        self._db.save_af_file(data, userid)
 
         return data

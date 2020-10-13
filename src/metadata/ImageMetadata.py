@@ -12,19 +12,28 @@ class ImageMetadata(object):
             self.read_metadata(file_path, data)
 
     def read_metadata(self, file_path, data):
-        imageObject = Image.open(file_path)
-        imageSize = imageObject.size
-        
-        data['metadata'] = {
-            'fileFormat': imageObject.format,
-            'imageMode': imageObject.mode,
-            'imageSize': { 
-                'width': imageSize[0],
-                'height': imageSize[1]
-            },
-            'exif': { }
-        }
+        try:
+            imageObject = Image.open(file_path)
+            imageSize = imageObject.size
+            
+            data['metadata'] = {
+                'fileFormat': imageObject.format,
+                'imageMode': imageObject.mode,
+                'imageSize': { 
+                    'width': imageSize[0],
+                    'height': imageSize[1]
+                }
+            }
 
-        for k, v in imageObject._getexif().items():
-            if k in ExifTags.TAGS:
-                data['metadata']['exif'][ExifTags.TAGS[k]] = str(v)
+            if imageObject._getexif():
+                data['metadata']['exif'] = { }
+                for k, v in imageObject._getexif().items():
+                    if k in ExifTags.TAGS:
+                        if isinstance(v, bytes):
+                            d = v.decode('unicode-escape').encode('latin1').decode('utf8')
+                            data['metadata']['exif'][ExifTags.TAGS[k]] = d.replace('ASCII\u0000\u0000\u0000', '') 
+                        else:
+                            data['metadata']['exif'][ExifTags.TAGS[k]] = str(v)
+        except Exception as inst:
+            print(type(inst))
+            print(inst.args)

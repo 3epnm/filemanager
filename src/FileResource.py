@@ -14,7 +14,7 @@ class FileResource(object):
         resp.stream, resp.content_length = self._file_store.open_file(name)
 
     def on_post(self, req, resp):
-        doc = self._file_store.save(req.get_param('file'))
+        doc = self._file_store.save(req.get_param('file'), req.context.auth['userid'])
 
         resp.body = json.dumps(doc)
         resp.content_type = falcon.MEDIA_JSON

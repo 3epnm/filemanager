@@ -9,7 +9,7 @@ class VersionResource(object):
         resp.status = falcon.HTTP_200
 
         doc = {
-            'FileMgr': 'v0.2',
+            'FileMgr': 'v0.3',
             'DateTime': str(datetime.datetime.now())
         }
 
