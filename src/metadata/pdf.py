@@ -1,18 +1,15 @@
-# PdfMetadata.ty
+# pdf.py
 
 import PyPDF2
 
-class PdfMetadata(object):
+class pdf(object):
     def __init__(self, file_path, data):
-        self.read_metadata(file_path, data)
-
-    def read_metadata(self, file_path, data):
         try:
             pdf = PyPDF2.PdfFileReader(open(file_path, "rb"))
             info = pdf.getDocumentInfo()
             pages = pdf.getNumPages()
 
-            data['metadata'] = {
+            data['metadata']['pdf'] = {
                 'pages': pages,
                 'author': info.author,
                 'creator': info.creator,
@@ -23,4 +20,3 @@ class PdfMetadata(object):
         except Exception as inst:
             print(type(inst))
             print(inst.args)
-

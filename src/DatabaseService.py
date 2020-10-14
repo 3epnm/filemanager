@@ -5,9 +5,9 @@ import json
 
 class DatabaseService(object):
     def __init__(self, connect_string):
-        self.connection = cx_Oracle.connect("filer/VeddelRocker77!@rumburak_low")
+        self.connection = cx_Oracle.connect(connect_string)
 
-    def save_af_file(self, data, userid):
+    def store(self, data, userid):
         query = """insert into 
             FILER.AF_FILE(UUID, FILENAME, MIME_TYPE, CREATED_BY, PROPERTIES_JSON) values 
             (:UUID, :FILENAME, :MIMETYPE, :CREATEDBY, :PROPERTIESJSON)"""
