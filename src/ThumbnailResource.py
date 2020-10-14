@@ -22,11 +22,11 @@ class ThumbnailResource(object):
             uuid = metadata['uuid']
             ext = self._file_store.get_ext(metadata['type'], metadata['name'])
 
-            name = '{uuid}{ext}'.format(uuid=uuid, ext=ext)
+            name = '{uuid}.{ext}'.format(uuid=uuid, ext=ext)
             file = self._file_store.file_path(name)
             
             module_path = os.path.join(os.path.dirname(__file__), 'thumbnail')
-            module_name = ext[1:]
+            module_name = ext
             try:  
                 fp, path, desc = imp.find_module(module_name, [ module_path ])
                 package = imp.load_module(module_name, fp, path, desc)
@@ -35,7 +35,7 @@ class ThumbnailResource(object):
                 thumb = image.create(file)
             except ImportError: 
                 image = default(self._cache_store)
-                thumb = image.create(ext)
+                thumb = image.create('.' + ext)
 
             metadata['links'].append(thumb)
 

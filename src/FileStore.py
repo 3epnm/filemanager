@@ -22,6 +22,18 @@ class FileStore(object):
         return os.path.join(self._storage_path, name)
 
 
+    def get_ext(self, type, name):
+        ext = mimetypes.guess_extension(type)
+
+        if ext is None:
+            s = name.split('.', 1)
+            if len(s) > 1:
+                ext = s[1]
+        else:
+            ext = ext[1:]
+
+        return ext
+
     def read_json(self, uuid):
         path = self.file_path('{uuid}.json'.format(uuid=uuid))
 
@@ -55,54 +67,28 @@ class FileStore(object):
 
         return path
 
-    def get_ext(self, type, name):
-        ext = mimetypes.guess_extension(type)
+    def get_attr(self, module_name, file_path, data):
+        module_path = os.path.join(os.path.dirname(__file__), 'metadata')
 
-        if ext is None:
-            s = name.split('.', 1)
-            if len(s) > 1:
-                ext = '.' + s[1]
+        fp, path, desc = imp.find_module(module_name, [ module_path ])
+        package = imp.load_module(module_name, fp, path, desc)
 
-        return ext
+        getattr(package, module_name)(file_path, data)
 
     def get_metadata_by_type(self, file, file_path, data):
-        module_path = os.path.join(os.path.dirname(__file__), 'metadata')
         module_name = file.type.split('/',1)[0]
-
-        fp, path, desc = imp.find_module(module_name, [ module_path ])
-        package = imp.load_module(module_name, fp, path, desc)
-
-        getattr(package, module_name)(file_path, data)
+        self.get_attr(module_name, file_path, data)
 
     def get_metadata_by_ext(self, ext, file_path, data):
-        module_path = os.path.join(os.path.dirname(__file__), 'metadata')
         module_name = ext
+        self.get_attr(module_name, file_path, data)
 
-        fp, path, desc = imp.find_module(module_name, [ module_path ])
-        package = imp.load_module(module_name, fp, path, desc)
-
-        getattr(package, module_name)(file_path, data)
-
-    def save(self, file, userid):
-        ext = self.get_ext(file.type, file.filename)
-
-        uuid = self._uuidgen()
-
-        file_name = '{uuid}{ext}'.format(uuid=uuid, ext=ext)
-        file_path = self.write_file(file_name, file)
-
-        data = {}
-        data['uuid'] = str(uuid)
-        data['name'] = file.filename
-        data['type'] = file.type
-
-        data['links'] = []
-
+    def doc_links(self, uuid, data, ext):
         data['links'].append({
             'type': 'file',
             'uuid': str(uuid),
-            'ext': ext[1:],
-            '$ref': '/api/file/{uuid}{ext}'.format(uuid=uuid, ext=ext)
+            'ext': ext,
+            '$ref': '/api/file/{uuid}.{ext}'.format(uuid=uuid, ext=ext)
         })
 
         data['links'].append({
@@ -112,17 +98,36 @@ class FileStore(object):
             '$ref': '/api/file/{uuid}.json'.format(uuid=uuid)
         })
 
-        data['metadata'] = {}
+    def doc_metadata(self, file, file_path, data):
+        ext = self.get_ext(file.type, file.filename)
 
         try:
             self.get_metadata_by_type(file, file_path, data)
             default(file_path, data)
         except ImportError: 
             try:
-                self.get_metadata_by_ext(ext[1:], file_path, data)
+                self.get_metadata_by_ext(ext, file_path, data)
                 default(file_path, data)
             except ImportError: 
                 default(file_path, data)
+
+    def save(self, file, userid):
+        ext = self.get_ext(file.type, file.filename)
+        uuid = self._uuidgen()
+
+        file_name = '{uuid}.{ext}'.format(uuid=uuid, ext=ext)
+        file_path = self.write_file(file_name, file)
+
+        data = {
+            'uuid': str(uuid),
+            'name': file.filename,
+            'type': file.type,
+            'links': [],
+            'metadata': {}
+        }
+
+        self.doc_links(uuid, data, ext)
+        self.doc_metadata(file, file_path, data)
 
         self.write_json(data)
 
@@ -144,7 +149,7 @@ class FileStore(object):
         for item in links:
             file_name = '{uuid}.{ext}'.format(uuid=item['uuid'], ext=item['ext'])
             file_path = self.file_path(file_name)
-            print(file_path)
+
             if os.path.isfile(file_path):
                 try:
                     os.remove(file_path)
